@@ -22,7 +22,9 @@ import {
   Flame,
   Check,
   Lock,
+  Share2,
 } from 'lucide-react';
+import GreenCardModal from '../components/dashboard/GreenCardModal';
 
 export default function ProfilePage() {
   const { user, signOut, updateProfile } = useAuth();
@@ -37,6 +39,7 @@ export default function ProfilePage() {
   const [isSavingName, setIsSavingName] = useState(false);
   const [isSavingLimit, setIsSavingLimit] = useState(false);
 
+  const [showGreenCard, setShowGreenCard] = useState(false);
   const fullName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Pengguna';
   const email = user?.email || 'pengguna@jejakhijau.id';
   const memberSince = profile?.created_at || user?.created_at || new Date().toISOString();
@@ -199,6 +202,17 @@ export default function ProfilePage() {
                 <Calendar size={14} className="text-slate-400" />
                 Bergabung {formatDate(memberSince)}
               </span>
+            </div>
+
+            <div className="mt-4 flex justify-center sm:justify-start">
+              <button
+                type="button"
+                onClick={() => setShowGreenCard(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-emerald-600/20 hover:from-emerald-700 hover:to-teal-700 transition"
+              >
+                <Share2 size={14} />
+                <span>Lihat &amp; Bagikan Rapor Hijau</span>
+              </button>
             </div>
           </div>
         </div>
@@ -367,6 +381,16 @@ export default function ProfilePage() {
           </div>
         </Card>
       </section>
+
+      {/* Green Card Shareable Modal */}
+      <GreenCardModal
+        isOpen={showGreenCard}
+        onClose={() => setShowGreenCard(false)}
+        userName={fullName}
+        totalSaved={totalSaved}
+        streakDays={streak}
+        totalLogs={totalLogs}
+      />
     </div>
   );
 }

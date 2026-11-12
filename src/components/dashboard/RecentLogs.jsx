@@ -8,6 +8,7 @@ import {
   Train,
   Bike,
   Zap,
+  Utensils,
 } from 'lucide-react';
 
 function getActivityIcon(activity = '') {
@@ -18,6 +19,23 @@ function getActivityIcon(activity = '') {
   if (lower.includes('kereta')) return <Train size={18} />;
   if (lower.includes('mobil listrik')) return <Zap size={18} />;
   if (lower.includes('mobil')) return <CarFront size={18} />;
+  if (
+    lower.includes('sapi') ||
+    lower.includes('ayam') ||
+    lower.includes('ikan') ||
+    lower.includes('makanan') ||
+    lower.includes('susu') ||
+    lower.includes('sayur')
+  ) {
+    return <Utensils size={18} />;
+  }
+  if (
+    lower.includes('plastik') ||
+    lower.includes('styrofoam') ||
+    lower.includes('sampah')
+  ) {
+    return <Trash2 size={18} />;
+  }
   return <Leaf size={18} />;
 }
 

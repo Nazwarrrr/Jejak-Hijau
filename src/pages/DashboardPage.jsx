@@ -1,14 +1,16 @@
+import { useState } from 'react';
 import useAuth from '../contexts/AuthContext';
 import useCarbonLogs from '../hooks/useCarbonLogs';
 import useProfile from '../hooks/useProfile';
 import { getGreeting, formatDate } from '../lib/utils';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Share2 } from 'lucide-react';
 import StatsCards from '../components/dashboard/StatsCards';
 import CarbonCalculator from '../components/dashboard/CarbonCalculator';
 import WeeklyChart from '../components/dashboard/WeeklyChart';
 import RecentLogs from '../components/dashboard/RecentLogs';
 import DailyProgress from '../components/dashboard/DailyProgress';
 import LoadingSkeleton from '../components/ui/LoadingSkeleton';
+import GreenCardModal from '../components/dashboard/GreenCardModal';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -23,6 +25,7 @@ export default function DashboardPage() {
     loading: logsLoading,
   } = useCarbonLogs();
 
+  const [showGreenCard, setShowGreenCard] = useState(false);
   const isLoading = logsLoading || profileLoading;
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Pengguna';
   const streak = profile?.streak_days || 1;
@@ -45,9 +48,19 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 rounded-2xl border border-white/70 bg-white/65 px-4 py-2.5 text-xs font-bold text-slate-600 shadow-sm backdrop-blur-xl">
-          <span>📅</span>
-          <span>{formatDate(new Date())}</span>
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setShowGreenCard(true)}
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/20 hover:from-emerald-700 hover:to-teal-700 transition"
+          >
+            <Share2 size={15} />
+            <span>Rapor Hijau</span>
+          </button>
+          <div className="hidden sm:flex items-center gap-2 rounded-2xl border border-white/70 bg-white/65 px-4 py-2.5 text-xs font-bold text-slate-600 shadow-sm backdrop-blur-xl">
+            <span>📅</span>
+            <span>{formatDate(new Date())}</span>
+          </div>
         </div>
       </section>
 
@@ -107,6 +120,16 @@ export default function DashboardPage() {
           </section>
         </div>
       )}
+
+      {/* Green Card Shareable Modal */}
+      <GreenCardModal
+        isOpen={showGreenCard}
+        onClose={() => setShowGreenCard(false)}
+        userName={displayName}
+        totalSaved={totalSaved}
+        streakDays={streak}
+        totalLogs={logs.length}
+      />
     </div>
   );
 }
