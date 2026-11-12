@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS public.carbon_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   activity TEXT NOT NULL,
-  category TEXT NOT NULL CHECK (category IN ('transportasi', 'listrik')),
+  category TEXT NOT NULL CHECK (category IN ('transportasi', 'listrik', 'makanan', 'sampah')),
   amount NUMERIC(10, 2) NOT NULL CHECK (amount > 0),
   unit TEXT NOT NULL,
   emissions NUMERIC(10, 2) NOT NULL CHECK (emissions >= 0),

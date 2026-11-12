@@ -6,6 +6,21 @@ export const VEHICLES = [
   { value: 'kereta', label: 'Kereta Api', rate: 0.04, unit: 'km', icon: 'Train', color: '#06b6d4' },
 ];
 
+export const FOOD_ITEMS = [
+  { value: 'beef', label: 'Daging Sapi (Porsi)', rate: 3.5, unit: 'porsi', icon: 'Beef', color: '#ef4444' },
+  { value: 'chicken', label: 'Daging Ayam (Porsi)', rate: 0.9, unit: 'porsi', icon: 'Drumstick', color: '#f59e0b' },
+  { value: 'fish', label: 'Ikan / Seafood (Porsi)', rate: 1.2, unit: 'porsi', icon: 'Fish', color: '#06b6d4' },
+  { value: 'dairy', label: 'Susu / Olahan Susu (Porsi)', rate: 0.8, unit: 'porsi', icon: 'Milk', color: '#3b82f6' },
+  { value: 'plant-based', label: 'Makanan Nabati / Sayur (Porsi)', rate: 0.25, unit: 'porsi', icon: 'Salad', color: '#10b981' },
+];
+
+export const WASTE_ITEMS = [
+  { value: 'plastic-bag', label: 'Kantong Plastik', rate: 0.05, unit: 'kantong', icon: 'ShoppingBag', color: '#f43f5e' },
+  { value: 'plastic-bottle', label: 'Botol Plastik PET', rate: 0.08, unit: 'botol', icon: 'Wine', color: '#ec4899' },
+  { value: 'styrofoam', label: 'Wadah Styrofoam', rate: 0.15, unit: 'wadah', icon: 'Box', color: '#8b5cf6' },
+  { value: 'food-waste', label: 'Sisa Makanan Terbuang', rate: 0.5, unit: 'kg', icon: 'Trash2', color: '#eab308' },
+];
+
 export const ELECTRICITY_RATE = 0.85;
 
 export const DEFAULT_DAILY_LIMIT = 5.0;
