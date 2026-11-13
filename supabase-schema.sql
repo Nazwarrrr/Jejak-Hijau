@@ -86,8 +86,44 @@ SELECT
   RANK() OVER (ORDER BY SUM(cl.emissions) ASC) AS rank
 FROM public.carbon_logs cl
 JOIN public.profiles p ON cl.user_id = p.id
-WHERE cl.date >= CURRENT_DATE - INTERVAL '7 days'
+WHERE cl.date >= CURRENT_DATE - INTERVAL '6 days'
 GROUP BY cl.user_id, p.full_name, p.avatar_url;
+
+-- ==============================================================================
+-- 5B. VIEWS: LEADERBOARD_MONTHLY & LEADERBOARD_ALL_TIME
+-- Aggregate actual emissions for the current calendar month and all recorded time.
+-- ==============================================================================
+CREATE OR REPLACE VIEW public.leaderboard_monthly AS
+SELECT
+  cl.user_id,
+  p.full_name,
+  p.avatar_url,
+  ROUND(SUM(cl.emissions)::numeric, 2) AS total_emissions,
+  COUNT(cl.id) AS total_logs,
+  RANK() OVER (ORDER BY SUM(cl.emissions) ASC) AS rank
+FROM public.carbon_logs cl
+JOIN public.profiles p ON cl.user_id = p.id
+WHERE cl.date >= DATE_TRUNC('month', CURRENT_DATE)::date
+GROUP BY cl.user_id, p.full_name, p.avatar_url;
+
+CREATE OR REPLACE VIEW public.leaderboard_all_time AS
+SELECT
+  cl.user_id,
+  p.full_name,
+  p.avatar_url,
+  ROUND(SUM(cl.emissions)::numeric, 2) AS total_emissions,
+  COUNT(cl.id) AS total_logs,
+  RANK() OVER (ORDER BY SUM(cl.emissions) ASC) AS rank
+FROM public.carbon_logs cl
+JOIN public.profiles p ON cl.user_id = p.id
+GROUP BY cl.user_id, p.full_name, p.avatar_url;
+
+REVOKE ALL ON public.leaderboard_weekly FROM PUBLIC, anon;
+REVOKE ALL ON public.leaderboard_monthly FROM PUBLIC, anon;
+REVOKE ALL ON public.leaderboard_all_time FROM PUBLIC, anon;
+GRANT SELECT ON public.leaderboard_weekly TO authenticated;
+GRANT SELECT ON public.leaderboard_monthly TO authenticated;
+GRANT SELECT ON public.leaderboard_all_time TO authenticated;
 
 -- ==============================================================================
 -- 6. ROW LEVEL SECURITY (RLS) POLICIES
@@ -103,6 +139,7 @@ ALTER TABLE public.user_challenges ENABLE ROW LEVEL SECURITY;
 -- ------------------------------------------------------------------------------
 
 -- Allow users to select their own profile
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 CREATE POLICY "Users can view own profile"
   ON public.profiles
   FOR SELECT
@@ -110,6 +147,7 @@ CREATE POLICY "Users can view own profile"
   USING (auth.uid() = id);
 
 -- Allow all authenticated users to read names and avatars for leaderboards/social
+DROP POLICY IF EXISTS "Authenticated users can view public profile info" ON public.profiles;
 CREATE POLICY "Authenticated users can view public profile info"
   ON public.profiles
   FOR SELECT
@@ -117,6 +155,7 @@ CREATE POLICY "Authenticated users can view public profile info"
   USING (true);
 
 -- Allow users to update their own profile
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile"
   ON public.profiles
   FOR UPDATE
@@ -125,6 +164,7 @@ CREATE POLICY "Users can update own profile"
   WITH CHECK (auth.uid() = id);
 
 -- Allow users to insert their own profile
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
 CREATE POLICY "Users can insert own profile"
   ON public.profiles
   FOR INSERT
@@ -136,6 +176,7 @@ CREATE POLICY "Users can insert own profile"
 -- ------------------------------------------------------------------------------
 
 -- Users can view their own carbon logs
+DROP POLICY IF EXISTS "Users can view own carbon logs" ON public.carbon_logs;
 CREATE POLICY "Users can view own carbon logs"
   ON public.carbon_logs
   FOR SELECT
@@ -143,6 +184,7 @@ CREATE POLICY "Users can view own carbon logs"
   USING (auth.uid() = user_id);
 
 -- Users can insert their own carbon logs
+DROP POLICY IF EXISTS "Users can insert own carbon logs" ON public.carbon_logs;
 CREATE POLICY "Users can insert own carbon logs"
   ON public.carbon_logs
   FOR INSERT
@@ -150,6 +192,7 @@ CREATE POLICY "Users can insert own carbon logs"
   WITH CHECK (auth.uid() = user_id);
 
 -- Users can update their own carbon logs
+DROP POLICY IF EXISTS "Users can update own carbon logs" ON public.carbon_logs;
 CREATE POLICY "Users can update own carbon logs"
   ON public.carbon_logs
   FOR UPDATE
@@ -158,6 +201,7 @@ CREATE POLICY "Users can update own carbon logs"
   WITH CHECK (auth.uid() = user_id);
 
 -- Users can delete their own carbon logs
+DROP POLICY IF EXISTS "Users can delete own carbon logs" ON public.carbon_logs;
 CREATE POLICY "Users can delete own carbon logs"
   ON public.carbon_logs
   FOR DELETE
@@ -169,6 +213,7 @@ CREATE POLICY "Users can delete own carbon logs"
 -- ------------------------------------------------------------------------------
 
 -- Users can view their own challenges
+DROP POLICY IF EXISTS "Users can view own challenges" ON public.user_challenges;
 CREATE POLICY "Users can view own challenges"
   ON public.user_challenges
   FOR SELECT
@@ -176,6 +221,7 @@ CREATE POLICY "Users can view own challenges"
   USING (auth.uid() = user_id);
 
 -- Users can insert their own challenges
+DROP POLICY IF EXISTS "Users can insert own challenges" ON public.user_challenges;
 CREATE POLICY "Users can insert own challenges"
   ON public.user_challenges
   FOR INSERT
@@ -183,6 +229,7 @@ CREATE POLICY "Users can insert own challenges"
   WITH CHECK (auth.uid() = user_id);
 
 -- Users can update their own challenges
+DROP POLICY IF EXISTS "Users can update own challenges" ON public.user_challenges;
 CREATE POLICY "Users can update own challenges"
   ON public.user_challenges
   FOR UPDATE
@@ -191,6 +238,7 @@ CREATE POLICY "Users can update own challenges"
   WITH CHECK (auth.uid() = user_id);
 
 -- Users can delete their own challenges
+DROP POLICY IF EXISTS "Users can delete own challenges" ON public.user_challenges;
 CREATE POLICY "Users can delete own challenges"
   ON public.user_challenges
   FOR DELETE

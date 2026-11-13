@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../contexts/AuthContext';
 import useToast from '../contexts/ToastContext';
-import { Leaf, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
+import { Leaf, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, MailCheck } from 'lucide-react';
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
@@ -12,14 +12,16 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [confirmationMessage, setConfirmationMessage] = useState('');
 
-  const { signUp } = useAuth();
+  const { signUp, isConfigured } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
+    setConfirmationMessage('');
 
     if (!fullName.trim()) {
       setErrorMsg('Nama lengkap wajib diisi.');
@@ -44,7 +46,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const { error } = await signUp(email.trim(), password, fullName.trim());
+      const { data, error } = await signUp(email.trim(), password, fullName.trim());
 
       if (error) {
         const message = error.message || 'Gagal mendaftarkan akun. Silakan coba lagi.';
@@ -53,7 +55,17 @@ export default function RegisterPage() {
         return;
       }
 
-      addToast('Akun berhasil dibuat! Selamat datang di JejakHijau 🌿', 'success');
+      if (isConfigured && !data?.session) {
+        setConfirmationMessage(
+          `Akun berhasil dibuat. Buka tautan verifikasi yang dikirim ke ${email.trim()} untuk mengaktifkan akun sebelum masuk.`
+        );
+        setPassword('');
+        setConfirmPassword('');
+        addToast('Periksa email untuk menyelesaikan verifikasi akun.', 'info');
+        return;
+      }
+
+      addToast('Akun berhasil dibuat. Selamat datang di JejakHijau.', 'success');
       navigate('/dashboard');
     } catch (err) {
       const message = err?.message || 'Terjadi kesalahan sistem saat mendaftar.';
@@ -72,8 +84,8 @@ export default function RegisterPage() {
         <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-teal-300/30 blur-3xl" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md">
-        <div className="rounded-3xl border border-white/70 bg-white/65 p-7 shadow-xl shadow-emerald-900/[0.06] backdrop-blur-xl sm:p-9">
+      <div className="page-enter relative z-10 w-full max-w-md">
+        <div className="motion-card rounded-3xl border border-white/70 bg-white/65 p-7 shadow-xl shadow-emerald-900/[0.06] backdrop-blur-xl sm:p-9">
           {/* Logo & Heading */}
           <div className="text-center">
             <Link to="/" className="inline-flex items-center gap-2.5">
@@ -91,6 +103,16 @@ export default function RegisterPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+            {confirmationMessage && (
+              <div
+                role="status"
+                className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800"
+              >
+                <MailCheck size={20} className="mt-0.5 shrink-0" />
+                <p>{confirmationMessage}</p>
+              </div>
+            )}
+
             {/* Full Name Field */}
             <div>
               <label

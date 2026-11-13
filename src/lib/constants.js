@@ -30,33 +30,31 @@ export const STORAGE_KEYS = {
   LIMIT: 'jejakhijau-daily-limit',
 };
 
-export const ECO_TIPS = [
-  { text: 'Memilih transportasi umum bisa mengurangi emisi hingga 80% dibanding mobil pribadi.', icon: 'Bus' },
-  { text: 'Matikan lampu saat tidak digunakan — menghemat energi dan uang sekaligus!', icon: 'Lightbulb' },
-  { text: 'Berjalan kaki untuk jarak dekat adalah cara termudah mengurangi jejak karbon.', icon: 'Footprints' },
-  { text: 'Satu pohon dewasa menyerap sekitar 22 kg CO₂ per tahun.', icon: 'TreePine' },
-  { text: 'Gunakan tas belanja sendiri. Produksi tas plastik menghasilkan 6 kg CO₂ per kg.', icon: 'ShoppingBag' },
-  { text: 'Memasak di rumah menghasilkan emisi 8x lebih rendah dibanding makan di restoran.', icon: 'ChefHat' },
-  { text: 'Kurangi pemakaian AC 1 jam per hari bisa menghemat 0,5 kg CO₂.', icon: 'Thermometer' },
-  { text: 'Sepeda listrik hanya menghasilkan 0,02 kg CO₂ per km — 10x lebih rendah dari motor.', icon: 'Bike' },
+export const ECO_FACTS = [
+  { text: 'Sisa makanan yang tertimbun di tempat pembuangan akhir dapat menghasilkan metana saat membusuk.', icon: 'Trash2', category: 'Sampah' },
+  { text: 'Membersihkan dan mengeringkan kemasan sebelum didaur ulang membantu menjaga kualitas materialnya.', icon: 'Recycle', category: 'Sampah' },
+  { text: 'Memakai ulang tas, botol, atau wadah membantu mengurangi kebutuhan barang sekali pakai.', icon: 'ShoppingBag', category: 'Sampah' },
+  { text: 'Merencanakan porsi dan menyimpan bahan makanan dengan baik membantu mengurangi makanan terbuang.', icon: 'ChefHat', category: 'Makanan' },
+  { text: 'Mematikan perangkat saat tidak digunakan dapat membantu mengurangi pemakaian listrik.', icon: 'Lightbulb', category: 'Energi' },
+  { text: 'Menggabungkan beberapa tujuan dalam satu perjalanan dapat membantu mengurangi jarak tempuh.', icon: 'Bus', category: 'Transportasi' },
 ];
 
 export const ACHIEVEMENTS = [
-  { id: 'first-log', title: 'Langkah Pertama', description: 'Catat aktivitas pertamamu', icon: '🌱', threshold: 1, type: 'total_logs' },
-  { id: 'streak-7', title: 'Konsisten Seminggu', description: 'Login 7 hari berturut-turut', icon: '🔥', threshold: 7, type: 'streak' },
-  { id: 'under-limit-3', title: 'Penjaga Batas', description: 'Di bawah batas harian 3 hari berturut', icon: '🛡️', threshold: 3, type: 'under_limit_streak' },
-  { id: 'tree-1', title: 'Penghijauan Pertama', description: 'Tanam pohon virtual pertamamu', icon: '🌳', threshold: 1, type: 'trees' },
-  { id: 'logs-50', title: 'Pencatat Ulung', description: 'Catat 50 aktivitas', icon: '📊', threshold: 50, type: 'total_logs' },
-  { id: 'low-emission', title: 'Emisi Rendah', description: 'Total emisi harian di bawah 1 kg', icon: '💚', threshold: 1, type: 'low_day' },
-  { id: 'tree-10', title: 'Hutan Kecil', description: 'Tanam 10 pohon virtual', icon: '🏕️', threshold: 10, type: 'trees' },
-  { id: 'streak-30', title: 'Pahlawan Bulanan', description: 'Login 30 hari berturut-turut', icon: '🏆', threshold: 30, type: 'streak' },
+  { id: 'first-log', title: 'Langkah Pertama', description: 'Catat aktivitas pertamamu', icon: 'Sprout', threshold: 1, type: 'total_logs' },
+  { id: 'streak-7', title: 'Konsisten Seminggu', description: 'Login 7 hari berturut-turut', icon: 'Flame', threshold: 7, type: 'streak' },
+  { id: 'under-limit-3', title: 'Penjaga Batas', description: 'Di bawah batas harian 3 hari berturut', icon: 'ShieldCheck', threshold: 3, type: 'under_limit_streak' },
+  { id: 'tree-1', title: 'Penghijauan Pertama', description: 'Tanam pohon virtual pertamamu', icon: 'TreePine', threshold: 1, type: 'trees' },
+  { id: 'logs-50', title: 'Pencatat Ulung', description: 'Catat 50 aktivitas', icon: 'BarChart3', threshold: 50, type: 'total_logs' },
+  { id: 'low-emission', title: 'Emisi Rendah', description: 'Total emisi harian di bawah 1 kg', icon: 'Heart', threshold: 1, type: 'low_day' },
+  { id: 'tree-10', title: 'Hutan Kecil', description: 'Tanam 10 pohon virtual', icon: 'Trees', threshold: 10, type: 'trees' },
+  { id: 'streak-30', title: 'Pahlawan Bulanan', description: 'Login 30 hari berturut-turut', icon: 'Trophy', threshold: 30, type: 'streak' },
 ];
 
 export const ECO_CHALLENGES = [
-  { id: 'no-car', title: 'Tanpa Mobil', description: 'Tidak menggunakan mobil pribadi selama 1 hari', duration: 1, points: 50, icon: '🚶', category: 'transportasi' },
-  { id: 'bike-to-work', title: 'Bersepeda ke Kantor', description: 'Gunakan sepeda untuk pergi bekerja', duration: 1, points: 30, icon: '🚲', category: 'transportasi' },
-  { id: 'save-electricity', title: 'Hemat Listrik', description: 'Kurangi pemakaian listrik 20% dari biasanya', duration: 7, points: 100, icon: '💡', category: 'listrik' },
-  { id: 'public-transport', title: 'Naik Angkutan Umum', description: 'Gunakan transportasi umum selama 5 hari', duration: 5, points: 80, icon: '🚌', category: 'transportasi' },
-  { id: 'zero-emission-day', title: 'Hari Tanpa Emisi', description: 'Capai 0 emisi dalam 1 hari', duration: 1, points: 150, icon: '🌟', category: 'semua' },
-  { id: 'under-limit-week', title: 'Seminggu Terjaga', description: 'Di bawah batas harian selama 7 hari', duration: 7, points: 200, icon: '🏅', category: 'semua' },
+  { id: 'no-car', title: 'Tanpa Mobil', description: 'Tidak menggunakan mobil pribadi selama 1 hari', duration: 1, points: 50, icon: 'Footprints', category: 'transportasi' },
+  { id: 'bike-to-work', title: 'Bersepeda ke Kantor', description: 'Gunakan sepeda untuk pergi bekerja', duration: 1, points: 30, icon: 'Bike', category: 'transportasi' },
+  { id: 'save-electricity', title: 'Hemat Listrik', description: 'Kurangi pemakaian listrik 20% dari biasanya', duration: 7, points: 100, icon: 'Lightbulb', category: 'listrik' },
+  { id: 'public-transport', title: 'Naik Angkutan Umum', description: 'Gunakan transportasi umum selama 5 hari', duration: 5, points: 80, icon: 'Bus', category: 'transportasi' },
+  { id: 'zero-emission-day', title: 'Hari Tanpa Emisi', description: 'Capai 0 emisi dalam 1 hari', duration: 1, points: 150, icon: 'Leaf', category: 'semua' },
+  { id: 'under-limit-week', title: 'Seminggu Terjaga', description: 'Di bawah batas harian selama 7 hari', duration: 7, points: 200, icon: 'ShieldCheck', category: 'semua' },
 ];

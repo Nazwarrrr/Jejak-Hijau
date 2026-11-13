@@ -41,7 +41,7 @@ export default function LoginPage() {
         return;
       }
 
-      addToast('Selamat datang kembali di JejakHijau! 🌿', 'success');
+      addToast('Selamat datang kembali di JejakHijau.', 'success');
       navigate('/dashboard');
     } catch (err) {
       const message = err?.message || 'Terjadi kesalahan sistem saat mencoba masuk.';
@@ -60,8 +60,8 @@ export default function LoginPage() {
         <div className="absolute -bottom-32 -right-32 h-80 w-80 rounded-full bg-teal-300/30 blur-3xl" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md">
-        <div className="rounded-3xl border border-white/70 bg-white/65 p-7 shadow-xl shadow-emerald-900/[0.06] backdrop-blur-xl sm:p-9">
+      <div className="page-enter relative z-10 w-full max-w-md">
+        <div className="motion-card rounded-3xl border border-white/70 bg-white/65 p-7 shadow-xl shadow-emerald-900/[0.06] backdrop-blur-xl sm:p-9">
           {/* Logo & Heading */}
           <div className="text-center">
             <Link to="/" className="inline-flex items-center gap-2.5">

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { formatAmount, formatTime } from '../../lib/utils';
+import { useToast } from '../../contexts/ToastContext';
 import {
   Lightbulb,
   CarFront,
@@ -40,7 +42,23 @@ function getActivityIcon(activity = '') {
 }
 
 export default function RecentLogs({ logs = [], onDelete, totalCount = 0 }) {
+  const [deletingId, setDeletingId] = useState(null);
+  const { addToast } = useToast();
   const displayCount = totalCount !== undefined ? totalCount : logs.length;
+
+  const handleDelete = async (log) => {
+    setDeletingId(log.id);
+    try {
+      const { error } = await onDelete(log.id);
+      if (error) throw error;
+      addToast('Aktivitas berhasil dihapus.', 'success');
+    } catch (error) {
+      console.error('Gagal menghapus aktivitas:', error);
+      addToast('Aktivitas gagal dihapus. Periksa koneksi lalu coba lagi.', 'error');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="rounded-3xl border border-white/70 bg-white/65 p-5 shadow-xl shadow-emerald-900/[0.05] backdrop-blur-xl sm:p-7">
@@ -83,9 +101,10 @@ export default function RecentLogs({ logs = [], onDelete, totalCount = 0 }) {
               {onDelete && (
                 <button
                   type="button"
-                  onClick={() => onDelete(log.id)}
+                  onClick={() => handleDelete(log)}
+                  disabled={deletingId === log.id}
                   aria-label={`Hapus aktivitas ${log.activity}`}
-                  className="ml-1 rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  className="ml-1 rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:cursor-wait disabled:opacity-50"
                 >
                   <Trash2 size={16} />
                 </button>

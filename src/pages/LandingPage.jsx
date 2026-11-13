@@ -62,7 +62,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-emerald-50 to-teal-100 text-slate-800 antialiased selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="page-enter min-h-screen bg-gradient-to-br from-sky-50 via-emerald-50 to-teal-100 text-slate-800 antialiased selection:bg-emerald-100 selection:text-emerald-900">
       {/* Decorative background glows */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-emerald-300/30 blur-3xl" />
@@ -134,7 +134,7 @@ export default function LandingPage() {
           </div>
 
           {/* Stats Row */}
-          <div className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
+          <div className="stagger-children mt-16 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
             <div className="rounded-3xl border border-white/70 bg-white/65 p-6 shadow-xl shadow-emerald-900/[0.05] backdrop-blur-xl">
               <p className="text-3xl font-black text-emerald-700 sm:text-4xl">1,200+</p>
               <p className="mt-1 text-sm font-semibold text-slate-600">Pengguna Aktif</p>
@@ -166,7 +166,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="stagger-children mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature, idx) => {
               const Icon = feature.icon;
               return (
@@ -226,7 +226,7 @@ export default function LandingPage() {
             <span className="font-extrabold text-slate-800">JejakHijau</span>
           </div>
           <p className="text-xs text-slate-500">
-            Dibuat dengan ♥ untuk bumi yang lebih hijau. &copy; {new Date().getFullYear()} JejakHijau. All rights reserved.
+            Dibuat untuk bumi yang lebih hijau. &copy; {new Date().getFullYear()} JejakHijau. All rights reserved.
           </p>
         </div>
       </footer>

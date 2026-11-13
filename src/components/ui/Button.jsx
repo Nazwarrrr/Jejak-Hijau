@@ -36,7 +36,7 @@ const Button = forwardRef(function Button(
       type={type}
       disabled={isDisabled}
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-bold transition focus:outline-none focus:ring-4 focus:ring-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-50',
+        'pressable inline-flex items-center justify-center gap-2 font-bold transition focus:outline-none focus:ring-4 focus:ring-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-50',
         variantClasses[variant] || variantClasses.primary,
         sizeClasses[size] || sizeClasses.md,
         className

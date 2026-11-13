@@ -7,18 +7,17 @@ import {
   Trash2,
   ChevronDown,
   Plus,
-  Zap,
 } from 'lucide-react';
 import {
   VEHICLES,
   ELECTRICITY_RATE,
   FOOD_ITEMS,
   WASTE_ITEMS,
-  ECO_TIPS,
 } from '../../lib/constants';
 import { formatAmount } from '../../lib/utils';
 import Button from '../ui/Button';
 import { useToast } from '../../contexts/ToastContext';
+import EcoTips from './EcoTips';
 
 export default function CarbonCalculator({ onAddLog }) {
   const [activeTab, setActiveTab] = useState('transportasi');
@@ -29,13 +28,8 @@ export default function CarbonCalculator({ onAddLog }) {
   const [electricityUsage, setElectricityUsage] = useState('');
   const [foodPortion, setFoodPortion] = useState('');
   const [wasteQty, setWasteQty] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const { addToast } = useToast();
-
-  const [randomTip] = useState(() => {
-    if (!ECO_TIPS || ECO_TIPS.length === 0) return null;
-    const index = Math.floor(Math.random() * ECO_TIPS.length);
-    return ECO_TIPS[index];
-  });
 
   const selectedVehicle =
     VEHICLES.find((vehicle) => vehicle.value === vehicleType) || VEHICLES[0];
@@ -73,7 +67,7 @@ export default function CarbonCalculator({ onAddLog }) {
 
   const estimate = Number.isFinite(amount) && amount > 0 ? amount * rate : 0;
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!Number.isFinite(amount) || amount <= 0) {
@@ -81,23 +75,30 @@ export default function CarbonCalculator({ onAddLog }) {
       return;
     }
 
-    if (onAddLog) {
-      onAddLog({
+    setIsSaving(true);
+    try {
+      if (!onAddLog) throw new Error('Penyimpanan aktivitas belum tersedia.');
+      const { error } = await onAddLog({
         activity,
         category: activeTab,
         amount,
         unit,
         emissions: estimate,
       });
+      if (error) throw error;
+
+      if (activeTab === 'transportasi') setDistance('');
+      else if (activeTab === 'listrik') setElectricityUsage('');
+      else if (activeTab === 'makanan') setFoodPortion('');
+      else if (activeTab === 'sampah') setWasteQty('');
+
+      addToast(`${activity} berhasil ditambahkan ke riwayat.`, 'success');
+    } catch (error) {
+      console.error('Gagal menyimpan aktivitas:', error);
+      addToast('Aktivitas gagal disimpan. Periksa koneksi lalu coba lagi.', 'error');
+    } finally {
+      setIsSaving(false);
     }
-
-    // Reset input fields
-    if (activeTab === 'transportasi') setDistance('');
-    else if (activeTab === 'listrik') setElectricityUsage('');
-    else if (activeTab === 'makanan') setFoodPortion('');
-    else if (activeTab === 'sampah') setWasteQty('');
-
-    addToast(`${activity} berhasil ditambahkan ke riwayat.`, 'success');
   };
 
   const getRateDescription = () => {
@@ -109,7 +110,7 @@ export default function CarbonCalculator({ onAddLog }) {
   };
 
   return (
-    <div className="rounded-3xl border border-white/70 bg-white/65 p-5 shadow-xl shadow-emerald-900/[0.06] backdrop-blur-xl sm:p-7">
+    <div className="flex h-full w-full flex-col rounded-3xl border border-white/70 bg-white/65 p-5 shadow-xl shadow-emerald-900/[0.06] backdrop-blur-xl sm:p-7">
       <div className="mb-6 flex items-start justify-between">
         <div>
           <p className="text-sm font-semibold text-emerald-700">Kalkulator emisi 360°</p>
@@ -360,25 +361,16 @@ export default function CarbonCalculator({ onAddLog }) {
           type="submit"
           variant="primary"
           size="lg"
+          loading={isSaving}
+          disabled={isSaving}
           className="mt-5 w-full gap-2 shadow-lg shadow-emerald-700/20"
         >
-          <Plus size={18} />
-          Hitung &amp; Simpan Log
+          {!isSaving && <Plus size={18} />}
+          {isSaving ? 'Menyimpan...' : 'Hitung & Simpan Log'}
         </Button>
       </form>
 
-      {/* Eco Tip Footer */}
-      {randomTip && (
-        <div className="mt-6 flex gap-3 rounded-2xl bg-teal-50/80 p-4 border border-teal-100/60">
-          <span className="mt-0.5 text-teal-700">
-            <Zap size={17} />
-          </span>
-          <p className="text-xs leading-5 text-teal-900/80">
-            <span className="font-bold">Tahukah kamu? </span>
-            {randomTip.text}
-          </p>
-        </div>
-      )}
+      <EcoTips />
     </div>
   );
 }

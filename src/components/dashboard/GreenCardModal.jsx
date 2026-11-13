@@ -29,13 +29,13 @@ export default function GreenCardModal({
 
   const treeInfo = getTreeLevel(totalSaved);
 
-  const shareText = `🌿 Rapor Aksi Hijau Saya di JejakHijau!
+  const shareText = `Rapor Aksi Hijau Saya di JejakHijau
 ━━━━━━━━━━━━━━━━━━
-👤 Pejuang: ${userName}
-🌳 Status Pohon: ${treeInfo.emoji} ${treeInfo.name}
-🛡️ Emisi Ditekan: ${formatAmount(totalSaved)} kg CO₂
-🔥 Streak Konsisten: ${streakDays} Hari
-📊 Catatan Aksi: ${totalLogs} Aktivitas
+Pejuang: ${userName}
+Status Pohon: ${treeInfo.name}
+Emisi Ditekan: ${formatAmount(totalSaved)} kg CO₂
+Streak Konsisten: ${streakDays} Hari
+Catatan Aksi: ${totalLogs} Aktivitas
 
 Langkah kecil bersama JejakHijau untuk bumi yang lebih lestari. Yuk hitung jejak karbonmu di jejakhijau.vercel.app! #JejakHijau #Sustainability`;
 
@@ -43,7 +43,7 @@ Langkah kecil bersama JejakHijau untuk bumi yang lebih lestari. Yuk hitung jejak
     try {
       await navigator.clipboard.writeText(shareText);
       setCopied(true);
-      addToast('Teks rapor berhasil disalin! Siap dibagikan ke medsos 📋', 'success');
+      addToast('Teks rapor berhasil disalin dan siap dibagikan.', 'success');
       setTimeout(() => setCopied(false), 3000);
     } catch {
       addToast('Gagal menyalin teks.', 'error');
@@ -68,7 +68,7 @@ Langkah kecil bersama JejakHijau untuk bumi yang lebih lestari. Yuk hitung jejak
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-md rounded-3xl bg-slate-900 p-6 text-white shadow-2xl ring-1 ring-white/10 sm:p-7">
+      <div className="animate-modal-enter relative w-full max-w-md rounded-3xl bg-slate-900 p-6 text-white shadow-2xl ring-1 ring-white/10 sm:p-7">
         {/* Close Button */}
         <button
           type="button"
@@ -117,7 +117,7 @@ Langkah kecil bersama JejakHijau untuk bumi yang lebih lestari. Yuk hitung jejak
           {/* Center Tree Avatar & Level */}
           <div className="my-6">
             <div className="relative mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-tr from-emerald-500/20 to-teal-500/30 ring-4 ring-emerald-500/40 shadow-inner">
-              <span className="text-5xl animate-float">{treeInfo.emoji}</span>
+              <TreePine size={52} strokeWidth={1.5} className="text-emerald-300 animate-float" aria-hidden="true" />
             </div>
             <h4 className="mt-3 text-lg font-black text-white">{userName}</h4>
             <p className="text-xs font-semibold text-emerald-400">

@@ -55,9 +55,9 @@ export function getGreeting() {
 }
 
 export function getTreeLevel(totalSaved) {
-  if (totalSaved >= 100) return { level: 5, name: 'Pohon Rindang', emoji: '🌳', next: null, progress: 100 };
-  if (totalSaved >= 50) return { level: 4, name: 'Pohon Muda', emoji: '🌲', next: 100, progress: ((totalSaved - 50) / 50) * 100 };
-  if (totalSaved >= 20) return { level: 3, name: 'Semak Hijau', emoji: '🌿', next: 50, progress: ((totalSaved - 20) / 30) * 100 };
-  if (totalSaved >= 5) return { level: 2, name: 'Tunas Baru', emoji: '🌱', next: 20, progress: ((totalSaved - 5) / 15) * 100 };
-  return { level: 1, name: 'Biji Harapan', emoji: '🫘', next: 5, progress: (totalSaved / 5) * 100 };
+  if (totalSaved >= 100) return { level: 5, name: 'Pohon Rindang', next: null, progress: 100 };
+  if (totalSaved >= 50) return { level: 4, name: 'Pohon Muda', next: 100, progress: ((totalSaved - 50) / 50) * 100 };
+  if (totalSaved >= 20) return { level: 3, name: 'Semak Hijau', next: 50, progress: ((totalSaved - 20) / 30) * 100 };
+  if (totalSaved >= 5) return { level: 2, name: 'Tunas Baru', next: 20, progress: ((totalSaved - 5) / 15) * 100 };
+  return { level: 1, name: 'Biji Harapan', next: 5, progress: (totalSaved / 5) * 100 };
 }

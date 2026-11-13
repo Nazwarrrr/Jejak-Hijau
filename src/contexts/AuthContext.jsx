@@ -24,6 +24,7 @@ export function AuthProvider({ children }) {
 
       if (error) {
         console.warn('Gagal memuat profil Supabase:', error.message);
+        return null;
       }
 
       if (data) {
@@ -41,9 +42,20 @@ export function AuthProvider({ children }) {
         points: 0,
       };
 
-      await supabase.from('profiles').upsert(defaultProf);
-      setProfile(defaultProf);
-      return defaultProf;
+      const { data: createdProfile, error: createError } = await supabase
+        .from('profiles')
+        .upsert(defaultProf)
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Gagal membuat profil Supabase:', createError.message);
+        return null;
+      }
+
+      const loadedProfile = createdProfile || defaultProf;
+      setProfile(loadedProfile);
+      return loadedProfile;
     } catch (err) {
       console.error('Error unexpected saat memuat profil:', err);
       return null;
@@ -53,12 +65,15 @@ export function AuthProvider({ children }) {
   // Initialize Auth state
   useEffect(() => {
     let mounted = true;
+    let authSubscription;
 
     async function initializeAuth() {
       try {
         if (isSupabaseConfigured && supabase) {
           // Supabase mode
           const { data: { session } } = await supabase.auth.getSession();
+          if (!mounted) return;
+
           if (mounted && session?.user) {
             setUser(session.user);
             await loadSupabaseProfile(
@@ -71,23 +86,24 @@ export function AuthProvider({ children }) {
           }
 
           // Listen for auth changes
-          const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+          const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
             if (!mounted) return;
             if (session?.user) {
               setUser(session.user);
-              await loadSupabaseProfile(
-                session.user.id,
-                session.user.user_metadata?.full_name || session.user.email?.split('@')[0]
-              );
+              setTimeout(() => {
+                if (mounted) {
+                  loadSupabaseProfile(
+                    session.user.id,
+                    session.user.user_metadata?.full_name || session.user.email?.split('@')[0]
+                  );
+                }
+              }, 0);
             } else {
               setUser(null);
               setProfile(null);
             }
           });
-
-          return () => {
-            authListener?.subscription?.unsubscribe();
-          };
+          authSubscription = authListener?.subscription;
         } else {
           // Offline / LocalStorage Mock Mode
           const savedUser = localStorage.getItem(AUTH_USER_KEY);
@@ -129,6 +145,7 @@ export function AuthProvider({ children }) {
 
     return () => {
       mounted = false;
+      authSubscription?.unsubscribe();
     };
   }, [loadSupabaseProfile]);
 
@@ -206,7 +223,7 @@ export function AuthProvider({ children }) {
 
         if (error) return { data: null, error };
 
-        if (data?.user) {
+        if (data?.user && data?.session) {
           const newProfile = {
             id: data.user.id,
             full_name: fullName,
@@ -215,12 +232,6 @@ export function AuthProvider({ children }) {
             streak_days: 1,
             points: 0,
           };
-
-          try {
-            await supabase.from('profiles').upsert(newProfile);
-          } catch (profileErr) {
-            console.warn('Gagal membuat baris profil di Supabase:', profileErr);
-          }
 
           setUser(data.user);
           setProfile(newProfile);
@@ -265,11 +276,8 @@ export function AuthProvider({ children }) {
   // Sign Out
   const signOut = useCallback(async () => {
     if (isSupabaseConfigured && supabase) {
-      try {
-        await supabase.auth.signOut();
-      } catch (err) {
-        console.error('Error saat sign out Supabase:', err);
-      }
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     } else {
       localStorage.removeItem(AUTH_USER_KEY);
     }
@@ -279,7 +287,8 @@ export function AuthProvider({ children }) {
 
   // Update Profile
   const updateProfile = useCallback(async (updates) => {
-    if (isSupabaseConfigured && supabase && user) {
+    if (isSupabaseConfigured && supabase) {
+      if (!user) return { error: new Error('Sesi pengguna tidak ditemukan.') };
       try {
         const { error } = await supabase
           .from('profiles')
