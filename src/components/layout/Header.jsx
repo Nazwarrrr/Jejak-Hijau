@@ -128,7 +128,7 @@ export default function Header() {
 
       {/* Mobile Menu Dropdown */}
       {user && mobileMenuOpen && (
-        <div className="border-b border-slate-200/80 bg-white/95 px-5 py-4 shadow-lg backdrop-blur-xl md:hidden">
+        <div className="animate-slide-down border-b border-slate-200/80 bg-white/95 px-5 py-4 shadow-lg backdrop-blur-xl md:hidden">
           <div className="mb-3 border-b border-slate-100 pb-2">
             <p className="text-xs font-semibold text-slate-400">Masuk sebagai</p>
             <p className="text-sm font-bold text-slate-800">{displayName}</p>

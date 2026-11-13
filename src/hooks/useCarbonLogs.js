@@ -8,6 +8,7 @@ export function useCarbonLogs() {
   const { user } = useAuth();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   // Sync / Load logs based on auth & Supabase configuration
   useEffect(() => {
@@ -15,35 +16,30 @@ export function useCarbonLogs() {
 
     async function loadLogs() {
       setLoading(true);
+      setLoadError('');
       try {
-        if (isSupabaseConfigured && supabase && user) {
+        if (isSupabaseConfigured) {
+          if (!supabase || !user) throw new Error('Sesi pengguna tidak ditemukan.');
           const { data, error } = await supabase
             .from('carbon_logs')
             .select('*')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
-          if (error) {
-            console.warn('Gagal memuat log emisi dari Supabase:', error.message);
-          } else if (mounted && data) {
-            setLogs(data);
-            return;
-          }
+          if (error) throw error;
+          if (mounted) setLogs(data || []);
+          return;
         }
 
-        // Offline / LocalStorage Mode
         const savedLogs = localStorage.getItem(STORAGE_KEYS.LOGS);
         if (mounted) {
-          if (savedLogs) {
-            try {
-              setLogs(JSON.parse(savedLogs));
-            } catch (e) {
-              console.error('Gagal parsing local carbon logs:', e);
-              setLogs([]);
-            }
-          } else {
-            setLogs([]);
-          }
+          setLogs(savedLogs ? JSON.parse(savedLogs) : []);
+        }
+      } catch (error) {
+        console.error('Gagal memuat log emisi:', error);
+        if (mounted) {
+          setLogs([]);
+          setLoadError('Riwayat aktivitas gagal dimuat. Periksa koneksi lalu muat ulang halaman.');
         }
       } finally {
         if (mounted) {
@@ -74,7 +70,10 @@ export function useCarbonLogs() {
         created_at: new Date().toISOString(),
       };
 
-      if (isSupabaseConfigured && supabase && user) {
+      if (isSupabaseConfigured) {
+        if (!supabase || !user) {
+          return { data: null, error: new Error('Sesi pengguna tidak ditemukan.') };
+        }
         try {
           const { data, error } = await supabase
             .from('carbon_logs')
@@ -94,37 +93,35 @@ export function useCarbonLogs() {
 
           if (error) {
             console.error('Error insert carbon log Supabase:', error);
-            // Fallback to local insertion so UX is not blocked
-            setLogs((prev) => [newLog, ...prev]);
-            return { data: newLog, error };
+            return { data: null, error };
           }
 
-          const createdLog = data || newLog;
+          const createdLog = data;
           setLogs((prev) => [createdLog, ...prev]);
           return { data: createdLog, error: null };
         } catch (err) {
           console.error('Exception insert carbon log:', err);
-          setLogs((prev) => [newLog, ...prev]);
-          return { data: newLog, error: err };
+          return { data: null, error: err };
         }
       }
 
-      // Offline / LocalStorage
-      setLogs((prev) => {
-        const updated = [newLog, ...prev];
+      try {
+        const updated = [newLog, ...logs];
         localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(updated));
-        return updated;
-      });
-
-      return { data: newLog, error: null };
+        setLogs(updated);
+        return { data: newLog, error: null };
+      } catch (error) {
+        return { data: null, error };
+      }
     },
-    [user]
+    [logs, user]
   );
 
   // Delete Log
   const deleteLog = useCallback(
     async (id) => {
-      if (isSupabaseConfigured && supabase && user) {
+      if (isSupabaseConfigured) {
+        if (!supabase || !user) return { error: new Error('Sesi pengguna tidak ditemukan.') };
         try {
           const { error } = await supabase
             .from('carbon_logs')
@@ -145,16 +142,16 @@ export function useCarbonLogs() {
         }
       }
 
-      // Offline / LocalStorage
-      setLogs((prev) => {
-        const updated = prev.filter((log) => log.id !== id);
+      try {
+        const updated = logs.filter((log) => log.id !== id);
         localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(updated));
-        return updated;
-      });
-
-      return { error: null };
+        setLogs(updated);
+        return { error: null };
+      } catch (error) {
+        return { error };
+      }
     },
-    [user]
+    [logs, user]
   );
 
   // Today Logs
@@ -230,6 +227,7 @@ export function useCarbonLogs() {
     addLog,
     deleteLog,
     loading,
+    loadError,
     chartData,
   };
 }

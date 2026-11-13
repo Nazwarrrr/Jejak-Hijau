@@ -30,6 +30,7 @@ export default function LeaderboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [leaderboardData, setLeaderboardData] = useState([]);
+  const [loadError, setLoadError] = useState('');
 
   const currentUserName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Kamu';
 
@@ -38,29 +39,36 @@ export default function LeaderboardPage() {
 
     async function fetchLeaderboard() {
       setLoading(true);
+      setLoadError('');
       try {
         if (isSupabaseConfigured && supabase) {
+          const leaderboardView = {
+            minggu: 'leaderboard_weekly',
+            bulan: 'leaderboard_monthly',
+            semua: 'leaderboard_all_time',
+          }[timeframe];
           const { data, error } = await supabase
-            .from('leaderboard')
+            .from(leaderboardView)
             .select('*')
+            .order('total_emissions', { ascending: true })
             .limit(50);
 
-          if (!error && data && data.length > 0 && mounted) {
-            const formatted = data.map((item, index) => ({
-              id: item.user_id || `user-${index}`,
+          if (error) throw error;
+
+          if (mounted && data) {
+            const formatted = data.map((item) => ({
+              id: item.user_id,
               name: item.full_name || 'Pejuang Hijau',
               emissions: Number(item.total_emissions || 0),
               logsCount: Number(item.total_logs || 0),
-              badge: item.badge || 'Pahlawan Bumi',
+              badge: item.badge || 'Pejuang Hijau',
               isCurrentUser: user && item.user_id === user.id,
             }));
             setLeaderboardData(formatted);
             return;
           }
-        }
-
-        // Mock fallback with current user injected
-        if (mounted) {
+        } else if (mounted) {
+          // Demo-only leaderboard when Supabase is not configured.
           const mockList = MOCK_LEADERBOARD.map((item) => ({ ...item }));
           const userAlreadyPresent = mockList.some((m) => m.name.toLowerCase() === currentUserName.toLowerCase());
           if (!userAlreadyPresent && user) {
@@ -78,7 +86,8 @@ export default function LeaderboardPage() {
       } catch (err) {
         console.error('Error fetching leaderboard:', err);
         if (mounted) {
-          setLeaderboardData(MOCK_LEADERBOARD);
+          setLeaderboardData([]);
+          setLoadError('Leaderboard gagal dimuat dari Supabase. Coba lagi nanti.');
         }
       } finally {
         if (mounted) {
@@ -92,23 +101,21 @@ export default function LeaderboardPage() {
     return () => {
       mounted = false;
     };
-  }, [user, currentUserName]);
+  }, [user, currentUserName, timeframe]);
 
-  // Apply timeframe modifier (visual scaling) and filter by search
+  // Filter and rank actual totals returned for the selected period.
   const filteredAndSortedList = useMemo(() => {
-    const multiplier = timeframe === 'bulan' ? 4.2 : timeframe === 'semua' ? 12.5 : 1.0;
-
     return leaderboardData
       .map((item) => ({
         ...item,
-        displayEmissions: Number((item.emissions * multiplier).toFixed(1)),
-        displayLogs: Math.round(item.logsCount * multiplier),
+        displayEmissions: item.emissions,
+        displayLogs: item.logsCount,
       }))
       .filter((item) =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
       )
       .sort((a, b) => a.displayEmissions - b.displayEmissions); // Lower emission is higher rank!
-  }, [leaderboardData, timeframe, searchQuery]);
+  }, [leaderboardData, searchQuery]);
 
   // Find current user rank
   const currentUserRank = useMemo(() => {
@@ -132,7 +139,7 @@ export default function LeaderboardPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-5 py-8 space-y-8">
+    <div className="page-enter mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
@@ -207,11 +214,15 @@ export default function LeaderboardPage() {
           </div>
           <LoadingSkeleton variant="card" height={300} className="rounded-3xl" />
         </div>
+      ) : loadError ? (
+        <Card className="px-6 py-10 text-center">
+          <p className="font-bold text-slate-800">{loadError}</p>
+        </Card>
       ) : (
         <>
           {/* Top 3 Podium Cards */}
           {topThree.length >= 3 && !searchQuery && (
-            <div className="grid grid-cols-1 items-end gap-4 pt-6 sm:grid-cols-3">
+            <div className="stagger-children grid grid-cols-1 items-end gap-4 pt-6 sm:grid-cols-3">
               {/* #2 Silver (Left) */}
               <Card className="order-2 sm:order-1 p-6 text-center border-slate-200/80 bg-gradient-to-b from-slate-50 to-white/90">
                 <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-slate-200 text-slate-700 shadow-md">
@@ -237,7 +248,7 @@ export default function LeaderboardPage() {
                   <Crown size={28} />
                 </span>
                 <Badge variant="warning" className="mt-3 bg-amber-100 text-amber-900 border-amber-300 font-black">
-                  👑 JUARA 1
+                  JUARA 1
                 </Badge>
                 <div className="mx-auto mt-3 grid h-16 w-16 place-items-center rounded-full bg-gradient-to-tr from-amber-400 to-yellow-400 text-xl font-black text-white shadow-md">
                   {getInitials(topThree[0].name)}
@@ -297,7 +308,19 @@ export default function LeaderboardPage() {
                   >
                     {/* Rank Number */}
                     <div className="w-8 text-center font-black text-sm">
-                      {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : (
+                      {rank <= 3 ? (
+                        <Medal
+                          size={20}
+                          className={
+                            rank === 1
+                              ? 'text-amber-500'
+                              : rank === 2
+                              ? 'text-slate-400'
+                              : 'text-orange-500'
+                          }
+                          aria-label={`Peringkat ${rank}`}
+                        />
+                      ) : (
                         <span className="text-slate-400">#{rank}</span>
                       )}
                     </div>

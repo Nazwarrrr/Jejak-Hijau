@@ -1,64 +1,174 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Target,
   Clock,
   Star,
   CheckCircle,
+  Footprints,
+  Bike,
+  Lightbulb,
+  Bus,
+  Leaf,
+  ShieldCheck,
 } from 'lucide-react';
 import { ECO_CHALLENGES } from '../lib/constants';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import useToast from '../contexts/ToastContext';
+import useAuth from '../contexts/AuthContext';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const STORAGE_CHALLENGES_KEY = 'jejakhijau-user-challenges';
+const CHALLENGE_ICONS = { Footprints, Bike, Lightbulb, Bus, Leaf, ShieldCheck };
 
 export default function ChallengesPage() {
   const { addToast } = useToast();
+  const { user } = useAuth();
   const [filter, setFilter] = useState('Semua');
+  const [activeChallenges, setActiveChallenges] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [savingChallengeId, setSavingChallengeId] = useState(null);
 
-  // Load saved challenge states from localStorage
-  const [activeChallenges, setActiveChallenges] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_CHALLENGES_KEY);
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadChallenges() {
+      setLoading(true);
+      setLoadError('');
+
+      try {
+        if (isSupabaseConfigured && supabase) {
+          if (!user) throw new Error('Silakan masuk kembali untuk memuat tantangan.');
+
+          const { data, error } = await supabase
+            .from('user_challenges')
+            .select('id, challenge_id, started_at, completed_at, status')
+            .eq('user_id', user.id)
+            .order('started_at', { ascending: false });
+
+          if (error) throw error;
+
+          const latestByChallenge = {};
+          for (const row of data || []) {
+            if (!latestByChallenge[row.challenge_id]) {
+              latestByChallenge[row.challenge_id] = {
+                id: row.id,
+                status: row.status,
+                startedAt: row.started_at,
+                completedAt: row.completed_at,
+              };
+            }
+          }
+
+          if (mounted) setActiveChallenges(latestByChallenge);
+          return;
+        }
+
+        const saved = localStorage.getItem(STORAGE_CHALLENGES_KEY);
+        const parsed = saved ? JSON.parse(saved) : {};
+        if (mounted) setActiveChallenges(parsed);
+      } catch (error) {
+        console.error('Gagal memuat tantangan:', error);
+        if (mounted) {
+          setActiveChallenges({});
+          setLoadError('Tantangan gagal dimuat. Periksa koneksi lalu muat ulang halaman.');
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
     }
-  });
+
+    loadChallenges();
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
 
   const saveChallengeState = (updated) => {
-    setActiveChallenges(updated);
-    try {
+    if (!isSupabaseConfigured || !supabase) {
       localStorage.setItem(STORAGE_CHALLENGES_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.error('Failed to save challenges to localStorage', e);
+    }
+    setActiveChallenges(updated);
+  };
+
+  const handleStartChallenge = async (challenge) => {
+    setSavingChallengeId(challenge.id);
+    try {
+      if (isSupabaseConfigured && supabase) {
+        if (!user) throw new Error('Sesi pengguna tidak ditemukan. Silakan masuk kembali.');
+
+        const { data, error } = await supabase
+          .from('user_challenges')
+          .insert({ user_id: user.id, challenge_id: challenge.id, status: 'active' })
+          .select('id, started_at, status')
+          .single();
+
+        if (error) throw error;
+
+        saveChallengeState({
+          ...activeChallenges,
+          [challenge.id]: {
+            id: data.id,
+            status: data.status,
+            startedAt: data.started_at,
+          },
+        });
+      } else {
+        saveChallengeState({
+          ...activeChallenges,
+          [challenge.id]: {
+            status: 'active',
+            startedAt: new Date().toISOString(),
+          },
+        });
+      }
+      addToast(`Tantangan "${challenge.title}" dimulai.`, 'success');
+    } catch (error) {
+      console.error('Gagal memulai tantangan:', error);
+      addToast('Tantangan gagal dimulai. Periksa koneksi lalu coba lagi.', 'error');
+    } finally {
+      setSavingChallengeId(null);
     }
   };
 
-  const handleStartChallenge = (challenge) => {
-    const updated = {
-      ...activeChallenges,
-      [challenge.id]: {
-        status: 'active',
-        startedAt: new Date().toISOString(),
-        progress: 1,
-      },
-    };
-    saveChallengeState(updated);
-    addToast(`Tantangan "${challenge.title}" dimulai! 💪`, 'success');
-  };
+  const handleCompleteChallenge = async (challenge) => {
+    const challengeState = activeChallenges[challenge.id];
+    setSavingChallengeId(challenge.id);
+    try {
+      const completedAt = new Date().toISOString();
+      if (isSupabaseConfigured && supabase) {
+        if (!user) throw new Error('Sesi pengguna tidak ditemukan. Silakan masuk kembali.');
+        if (!challengeState?.id) throw new Error('Data tantangan tidak lengkap. Muat ulang halaman.');
 
-  const handleCompleteChallenge = (challenge) => {
-    const updated = {
-      ...activeChallenges,
-      [challenge.id]: {
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-      },
-    };
-    saveChallengeState(updated);
-    addToast(`Selamat! Kamu menyelesaikan tantangan "${challenge.title}" (+${challenge.points} poin)! 🎉`, 'success');
+        const { data, error } = await supabase
+          .from('user_challenges')
+          .update({ status: 'completed', completed_at: completedAt })
+          .eq('id', challengeState.id)
+          .eq('user_id', user.id)
+          .select('id')
+          .single();
+
+        if (error) throw error;
+        if (!data) throw new Error('Tantangan tidak ditemukan untuk akun ini.');
+      }
+
+      saveChallengeState({
+        ...activeChallenges,
+        [challenge.id]: {
+          ...challengeState,
+          status: 'completed',
+          completedAt,
+        },
+      });
+      addToast(`Selamat! Kamu menyelesaikan tantangan "${challenge.title}" dan mendapat ${challenge.points} poin.`, 'success');
+    } catch (error) {
+      console.error('Gagal menyelesaikan tantangan:', error);
+      addToast('Tantangan gagal diselesaikan. Periksa koneksi lalu coba lagi.', 'error');
+    } finally {
+      setSavingChallengeId(null);
+    }
   };
 
   const filteredChallenges = ECO_CHALLENGES.filter((ch) => {
@@ -73,7 +183,7 @@ export default function ChallengesPage() {
   ).length;
 
   return (
-    <div className="mx-auto max-w-4xl px-5 py-8 space-y-8">
+    <div className="page-enter mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
@@ -118,12 +228,24 @@ export default function ChallengesPage() {
         ))}
       </div>
 
+      {loadError && (
+        <Card role="alert" className="border-rose-200 bg-rose-50/80 px-5 py-4 text-sm font-semibold text-rose-700">
+          {loadError}
+        </Card>
+      )}
+
       {/* Challenge Cards Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="stagger-children grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        {loading && (
+          <Card className="col-span-full p-8 text-center text-sm font-semibold text-slate-500">
+            Memuat status tantangan...
+          </Card>
+        )}
         {filteredChallenges.map((challenge) => {
           const userState = activeChallenges[challenge.id];
           const isCompleted = userState?.status === 'completed';
           const isActive = userState?.status === 'active';
+          const ChallengeIcon = CHALLENGE_ICONS[challenge.icon];
 
           return (
             <Card
@@ -139,8 +261,8 @@ export default function ChallengesPage() {
               <div>
                 {/* Top badges */}
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-3xl" role="img" aria-label={challenge.title}>
-                    {challenge.icon}
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-700">
+                    <ChallengeIcon size={23} aria-label={challenge.title} />
                   </span>
                   <div className="flex items-center gap-1.5 flex-wrap justify-end">
                     <Badge variant="default" className="text-[11px] capitalize">
@@ -173,7 +295,7 @@ export default function ChallengesPage() {
                 {isCompleted ? (
                   <div className="flex items-center justify-between w-full">
                     <Badge variant="success" className="gap-1 px-3 py-1 text-xs">
-                      <CheckCircle size={14} /> Selesai ✓
+                      <CheckCircle size={14} /> Selesai
                     </Badge>
                     <span className="text-xs font-bold text-emerald-700">+{challenge.points} Poin didapat</span>
                   </div>
@@ -186,9 +308,11 @@ export default function ChallengesPage() {
                       size="sm"
                       variant="primary"
                       onClick={() => handleCompleteChallenge(challenge)}
+                      loading={savingChallengeId === challenge.id}
+                      disabled={loading || Boolean(savingChallengeId)}
                       className="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-700"
                     >
-                      Tandai Selesai ✓
+                      Tandai Selesai
                     </Button>
                   </div>
                 ) : (
@@ -196,6 +320,8 @@ export default function ChallengesPage() {
                     size="sm"
                     variant="primary"
                     onClick={() => handleStartChallenge(challenge)}
+                    loading={savingChallengeId === challenge.id}
+                    disabled={loading || Boolean(savingChallengeId)}
                     className="w-full"
                   >
                     Ambil Tantangan

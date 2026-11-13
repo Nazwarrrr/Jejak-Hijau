@@ -20,11 +20,28 @@ import {
   X,
   LogOut,
   Flame,
+  Sprout,
+  ShieldCheck,
+  BarChart3,
+  Heart,
+  Trees,
+  Trophy,
   Check,
   Lock,
   Share2,
 } from 'lucide-react';
 import GreenCardModal from '../components/dashboard/GreenCardModal';
+
+const ACHIEVEMENT_ICONS = {
+  Sprout,
+  Flame,
+  ShieldCheck,
+  TreePine,
+  BarChart3,
+  Heart,
+  Trees,
+  Trophy,
+};
 
 export default function ProfilePage() {
   const { user, signOut, updateProfile } = useAuth();
@@ -71,7 +88,7 @@ export default function ProfilePage() {
       if (error) {
         addToast('Gagal memperbarui nama profil.', 'error');
       } else {
-        addToast('Nama profil berhasil diperbarui! ✨', 'success');
+        addToast('Nama profil berhasil diperbarui.', 'success');
         setIsEditingName(false);
       }
     } catch {
@@ -105,7 +122,7 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     try {
       await signOut();
-      addToast('Kamu berhasil keluar. Sampai jumpa lagi! 👋', 'info');
+      addToast('Kamu berhasil keluar. Sampai jumpa lagi.', 'info');
       navigate('/login');
     } catch (err) {
       addToast('Gagal keluar akun: ' + (err?.message || ''), 'error');
@@ -130,7 +147,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-5 py-8 space-y-8">
+    <div className="page-enter mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
       {/* 1. Profile Header Card */}
       <Card className="p-6 sm:p-8">
         <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
@@ -221,7 +238,7 @@ export default function ProfilePage() {
       {/* 2. Stats Overview */}
       <section>
         <h2 className="mb-4 text-lg font-extrabold text-slate-900">Ringkasan Statistik</h2>
-        <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+        <div className="stagger-children grid grid-cols-2 gap-3.5 sm:grid-cols-4">
           {/* Total Emisi */}
           <Card className="p-4 sm:p-5">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-100 text-emerald-700">
@@ -252,7 +269,7 @@ export default function ProfilePage() {
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-green-100 text-green-700">
                 <TreePine size={18} />
               </span>
-              <span className="text-xl">{treeInfo.emoji}</span>
+              <TreePine size={20} className="text-emerald-700" aria-hidden="true" />
             </div>
             <p className="mt-4 text-xs font-semibold text-slate-500">Pohon Virtual</p>
             <p className="mt-1 truncate text-lg sm:text-xl font-black tracking-tight text-slate-900">
@@ -292,9 +309,10 @@ export default function ProfilePage() {
           </Badge>
         </div>
 
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="stagger-children grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
           {ACHIEVEMENTS.map((ach) => {
             const earned = isEarned(ach);
+            const AchievementIcon = ACHIEVEMENT_ICONS[ach.icon];
             return (
               <Card
                 key={ach.id}
@@ -305,8 +323,8 @@ export default function ProfilePage() {
                 }`}
               >
                 <div className="flex items-start justify-between">
-                  <span className="text-3xl" role="img" aria-label={ach.title}>
-                    {ach.icon}
+                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
+                    <AchievementIcon size={22} aria-label={ach.title} />
                   </span>
                   {earned ? (
                     <span className="grid h-6 w-6 place-items-center rounded-full bg-emerald-600 text-white">

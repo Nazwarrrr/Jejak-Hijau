@@ -1,5 +1,5 @@
 import { formatAmount, getTreeLevel } from '../../lib/utils';
-import { Leaf, Activity, ArrowUpRight, ArrowDownRight, Check, TreePine } from 'lucide-react';
+import { Leaf, Activity, ArrowUpRight, ArrowDownRight, Check, TreePine, Flame } from 'lucide-react';
 
 export default function StatsCards({
   todayTotal = 0,
@@ -10,7 +10,7 @@ export default function StatsCards({
   const treeInfo = getTreeLevel(totalSaved);
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="stagger-children grid grid-cols-2 gap-3">
       {/* 1. Total Hari Ini */}
       <div className="rounded-2xl border border-emerald-100/80 bg-gradient-to-br from-emerald-50 to-white p-4 sm:p-5">
         <div className="flex items-center justify-between">
@@ -51,9 +51,7 @@ export default function StatsCards({
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-green-100 text-green-700">
             <TreePine size={18} />
           </span>
-          <span className="text-lg" role="img" aria-label={treeInfo.name}>
-            {treeInfo.emoji}
-          </span>
+          <TreePine size={20} className="text-green-700" aria-hidden="true" />
         </div>
         <p className="mt-4 text-xs font-semibold text-slate-500">Pohon Virtual</p>
         <p className="mt-1 truncate text-xl sm:text-2xl font-black tracking-tight text-slate-900" title={treeInfo.name}>
@@ -65,7 +63,7 @@ export default function StatsCards({
       <div className="rounded-2xl border border-amber-100/80 bg-gradient-to-br from-amber-50 to-white p-4 sm:p-5">
         <div className="flex items-center justify-between">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-100 text-amber-700">
-            <span className="text-base" role="img" aria-label="api">🔥</span>
+            <Flame size={18} />
           </span>
           <span className="text-xs font-bold text-amber-700">Aktif</span>
         </div>

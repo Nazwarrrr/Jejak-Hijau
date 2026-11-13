@@ -3,7 +3,7 @@ import useAuth from '../contexts/AuthContext';
 import useCarbonLogs from '../hooks/useCarbonLogs';
 import useProfile from '../hooks/useProfile';
 import { getGreeting, formatDate } from '../lib/utils';
-import { Sparkles, Share2 } from 'lucide-react';
+import { Sparkles, Share2, CalendarDays } from 'lucide-react';
 import StatsCards from '../components/dashboard/StatsCards';
 import CarbonCalculator from '../components/dashboard/CarbonCalculator';
 import WeeklyChart from '../components/dashboard/WeeklyChart';
@@ -23,6 +23,7 @@ export default function DashboardPage() {
     addLog,
     deleteLog,
     loading: logsLoading,
+    loadError: logsError,
   } = useCarbonLogs();
 
   const [showGreenCard, setShowGreenCard] = useState(false);
@@ -32,7 +33,7 @@ export default function DashboardPage() {
   const totalSaved = profile?.points || (profile?.total_trees ? profile.total_trees * 20 : Math.max(0, (dailyLimit - todayTotal) * 3));
 
   return (
-    <div className="mx-auto max-w-7xl px-5 pb-12 pt-6 sm:px-8">
+    <div className="page-enter mx-auto max-w-7xl px-4 pb-12 pt-6 sm:px-6 lg:px-8">
       {/* Hero / Greeting Section */}
       <section className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
@@ -41,7 +42,7 @@ export default function DashboardPage() {
             <span>LANGKAH KECIL, DAMPAK BESAR</span>
           </div>
           <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
-            {getGreeting()}, {displayName}! 👋
+            {getGreeting()}, {displayName}
           </h1>
           <p className="mt-1 text-sm font-medium text-slate-600">
             Kenali jejak karbonmu hari ini dan buat perubahan positif.
@@ -58,7 +59,7 @@ export default function DashboardPage() {
             <span>Rapor Hijau</span>
           </button>
           <div className="hidden sm:flex items-center gap-2 rounded-2xl border border-white/70 bg-white/65 px-4 py-2.5 text-xs font-bold text-slate-600 shadow-sm backdrop-blur-xl">
-            <span>📅</span>
+            <CalendarDays size={15} aria-hidden="true" />
             <span>{formatDate(new Date())}</span>
           </div>
         </div>
@@ -84,10 +85,19 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="space-y-8">
+          {logsError && (
+            <div
+              role="alert"
+              className="rounded-2xl border border-rose-200 bg-rose-50/90 px-5 py-4 text-sm font-semibold text-rose-700"
+            >
+              {logsError}
+            </div>
+          )}
+
           {/* Main 2-Column Grid */}
-          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+          <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-[0.92fr_1.08fr]">
             {/* Left Column: Carbon Calculator */}
-            <div>
+            <div className="flex">
               <CarbonCalculator onAddLog={addLog} />
             </div>
 

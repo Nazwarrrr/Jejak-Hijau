@@ -201,13 +201,15 @@ Jika kamu ingin menghubungkan ke database PostgreSQL nyata:
 ### 2. Jalankan Skema Database
 1. Buka menu **SQL Editor** di dashboard Supabase kamu.
 2. Buka berkas [`supabase-schema.sql`](./supabase-schema.sql) pada repositori ini, salin seluruh kodenya, dan tempel ke SQL Editor.
-3. Klik tombol **Run**. Skrip otomatis menyusun:
+3. Klik tombol **Run**. Skrip dapat dijalankan ulang dan otomatis menyusun:
    - Tabel `profiles`: Menyimpan nama, batas emisi, poin, dan jumlah pohon.
    - Tabel `carbon_logs`: Menyimpan aktivitas transportasi/listrik dengan validasi data.
    - Tabel `user_challenges`: Melacak status tantangan pengguna.
-   - View `leaderboard_weekly`: Menghitung peringkat emisi terendah mingguan secara otomatis.
+   - View `leaderboard_weekly`, `leaderboard_monthly`, dan `leaderboard_all_time`: Menghitung peringkat berdasarkan emisi pada periode aktual.
    - **Row Level Security (RLS)**: Menjamin data log hanya bisa dibaca dan diubah oleh pemiliknya sendiri.
    - Trigger otomatis untuk sinkronisasi profil saat user baru mendaftar via Supabase Auth.
+
+Jika proyek Supabase sudah pernah disiapkan, jalankan ulang `supabase-schema.sql` agar view leaderboard bulanan dan sepanjang masa tersedia. Kebijakan RLS pada skrip akan dibuat ulang dengan aman.
 
 ### 3. Set Variabel Lingkungan (.env)
 Buat berkas `.env` di direktori utama:
@@ -215,7 +217,7 @@ Buat berkas `.env` di direktori utama:
 VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
-Restart server dengan `npm run dev`. Aplikasi kini terhubung langsung ke database cloud!
+Restart server dengan `npm run dev`. Aplikasi kini terhubung langsung ke database cloud. Jika konfirmasi email diaktifkan pada Supabase Auth, pengguna harus membuka tautan verifikasi sebelum masuk.
 
 ---
 
